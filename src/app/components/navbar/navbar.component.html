@@ -1,0 +1,46 @@
+<nav class="fixed top-0 left-0 w-full shadow bg-[#181A1A] font-poppins z-50">
+  <div class="container flex items-center justify-between p-4 mx-auto text-gray-300 capitalize">
+    
+    <!-- Logo & Title -->
+    <div class="flex items-center space-x-3">
+      <img
+        src="assets/images/reunion-logo.png"
+        alt="Reunion Fellowship Logo"
+        class="w-10 h-10 rounded-full border-2 border-[#ECA400] object-cover"
+        onerror="this.src='assets/images/default-avatar.png'"
+      />
+      <div>
+        <h1 class="text-lg font-bold text-white tracking-wide">Reunion CFN</h1>
+        <p class="text-sm text-gray-400 -mt-1">United in Spirit • Growing in Faith</p>
+      </div>
+    </div>
+
+    <!-- Menu (Simple & Purposeful) -->
+    <div class="hidden md:flex items-center space-x-8 text-gray-300">
+      <a routerLink="/" class="hover:text-[#ECA400] transition-colors duration-300">Home</a>
+      <a routerLink="/camp" class="hover:text-[#ECA400] transition-colors duration-300">Camp</a>
+      <a routerLink="/events" class="hover:text-[#ECA400] transition-colors duration-300">Events</a>
+      <a routerLink="/sponsors" class="hover:text-[#ECA400] transition-colors duration-300">Sponsors</a>
+      <a routerLink="/about" class="hover:text-[#ECA400] transition-colors duration-300">About</a>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <div class="md:hidden flex items-center">
+      <button (click)="toggleMenu()" class="text-gray-300 focus:outline-none focus:text-[#ECA400]">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div *ngIf="isMenuOpen" class="md:hidden bg-[#181A1A] shadow-md py-2 transition-all duration-300 ease-in-out">
+    <a routerLink="/" class="block px-6 py-3 hover:text-[#ECA400] hover:bg-[#1E2222]">Home</a>
+    <a routerLink="/camp" class="block px-6 py-3 hover:text-[#ECA400] hover:bg-[#1E2222]">Camp</a>
+    <a routerLink="/events" class="block px-6 py-3 hover:text-[#ECA400] hover:bg-[#1E2222]">Events</a>
+    <a routerLink="/sponsors" class="block px-6 py-3 hover:text-[#ECA400] hover:bg-[#1E2222]">Sponsors</a>
+    <a routerLink="/about" class="block px-6 py-3 hover:text-[#ECA400] hover:bg-[#1E2222]">About</a>
+  </div>
+</nav>

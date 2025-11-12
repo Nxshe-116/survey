@@ -1,0 +1,185 @@
+<div class="min-h-screen flex flex-col items-center justify-center bg-blue-50 p-4">
+  <div class="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-6 md:p-10">
+    <h1 class="text-4xl font-extrabold text-blue-700 mb-10">Reunion Camp 2025 Registration</h1>
+
+       <!-- Price alert -->
+    <p class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 mb-6 rounded">
+      ⚠️ Current prices are valid until <strong>30 November 2025</strong>. From
+      <strong>1 December</strong>, all sponsorships increase by <strong>$15</strong>.
+    </p>
+
+    <!-- Stepper -->
+    <ol class="flex justify-center items-center w-full max-w-xl mx-auto mb-8">
+      <li *ngFor="let step of steps; let i = index"
+          class="flex-1 text-sm md:text-base font-medium"
+          [ngClass]="activeStep === i+1 ? 'text-blue-600' : 'text-gray-400'">
+        <div class="w-8 h-8 mx-auto rounded-full flex items-center justify-center border mb-1"
+             [ngClass]="activeStep === i+1 ? 'border-blue-600 text-blue-600' : 'border-gray-400'">
+          {{ i+1 }}
+        </div>
+        {{ step }}
+      </li>
+    </ol>
+
+    <!-- STEP 1 -->
+    <div *ngIf="activeStep === 1" class="animate-fade-in">
+      <h2 class="text-lg font-semibold mb-4 text-blue-700">Personal Information</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <input [(ngModel)]="formData.firstName" type="text" placeholder="First Name"
+               class="w-full p-3 border border-gray-300 rounded" />
+        <input [(ngModel)]="formData.lastName" type="text" placeholder="Last Name"
+               class="w-full p-3 border border-gray-300 rounded" />
+      </div>
+
+      <input [(ngModel)]="formData.phone" type="tel" placeholder="Phone Number"
+             class="w-full p-3 border border-gray-300 rounded mb-3" />
+
+      <select [(ngModel)]="formData.category" (change)="updateParticipants()"
+              class="w-full p-3 border border-gray-300 rounded mb-3">
+        <option value="">Select Category</option>
+        <option value="coupleWithChildren">Couple with Children</option>
+        <option value="couple">Couple (Adults)</option>
+        <option value="adult">Adult (Individual)</option>
+        <option value="youth">Youth</option>
+      </select>
+
+      <div *ngIf="formData.category === 'couple' || formData.category === 'coupleWithChildren'" class="mb-4 bg-blue-50 p-4 rounded-md">
+        <h3 class="font-semibold text-blue-700 mb-2">Spouse Details</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <input [(ngModel)]="formData.spouse.firstName" type="text" placeholder="Spouse First Name"
+                 class="w-full p-3 border border-gray-300 rounded" />
+          <input [(ngModel)]="formData.spouse.lastName" type="text" placeholder="Spouse Last Name"
+                 class="w-full p-3 border border-gray-300 rounded" />
+        </div>
+      </div>
+
+      <!-- Dependents -->
+      <div class="mb-4">
+        <div *ngFor="let dep of formData.dependents; let i = index" class="flex items-center gap-2 mb-2">
+          <input [(ngModel)]="dep.name" type="text" placeholder="Dependent Name"
+                 class="flex-1 p-2 border border-gray-300 rounded" />
+          <select [(ngModel)]="dep.ageGroup" class="p-2 border border-gray-300 rounded">
+            <option value="">Age Group</option>
+            <option value="teen">Teen</option>
+            <option value="youth">Youth</option>
+            <option value="child">Child</option>
+          </select>
+          <button (click)="removeDependent(i)" class="text-red-600 hover:underline text-sm">X</button>
+        </div>
+        <button (click)="addDependent()" class="bg-blue-600 text-white px-4 py-2 rounded-md mt-2 hover:bg-blue-700">
+          + Add Dependent
+        </button>
+      </div>
+
+      <div class="flex justify-end">
+        <button (click)="updateParticipants(); nextStep()" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition">
+          Next
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div *ngIf="activeStep === 2" class="animate-fade-in">
+      <h2 class="text-lg font-semibold mb-4 text-blue-700">Accommodation</h2>
+      <div *ngFor="let person of participants" class="mb-4">
+        <label class="block font-medium mb-1">{{ person.name }}</label>
+        <select [(ngModel)]="person.accommodation" class="w-full p-3 border border-gray-300 rounded">
+          <option value="">Select accommodation</option>
+          <option value="couple">Couple — $300 (shared)</option>
+          <option value="adult">Adult (individual) — $230</option>
+          <option value="youth">Youth — $145</option>
+          <option value="teen">Teen — $85</option>
+          <option value="day">Day Camper — $15</option>
+        </select>
+      </div>
+      <div class="flex justify-between">
+        <button (click)="prevStep()" class="bg-gray-300 text-gray-800 py-2 px-6 rounded-md hover:bg-gray-400 transition">
+          Back
+        </button>
+        <button (click)="nextStep()" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition">
+          Next
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div *ngIf="activeStep === 3" class="animate-fade-in">
+      <h2 class="text-lg font-semibold mb-4 text-blue-700">Payment & Extras</h2>
+
+      <p class="text-gray-600 mb-4">
+        Please indicate when you expect to complete your payment and any optional extras.
+      </p>
+
+      <input [(ngModel)]="formData.expectedPaymentDate" type="date"
+             class="w-full p-3 border border-gray-300 rounded mb-4" />
+
+      <div class="flex flex-col space-y-2 mb-4">
+        <label class="flex items-center gap-2">
+          <input type="checkbox" [(ngModel)]="formData.wantTshirt" /> T-shirt ($20)
+        </label>
+        <label class="flex items-center gap-2">
+          <input type="checkbox" [(ngModel)]="formData.wantCap" /> Cap ($10)
+        </label>
+      </div>
+
+      <select [(ngModel)]="formData.volunteerRole" class="w-full p-3 border border-gray-300 rounded mb-3">
+        <option value="">Volunteer Area (optional)</option>
+        <option value="ushering">Ushering</option>
+        <option value="kitchen">Kitchen</option>
+        <option value="media">Media</option>
+        <option value="cleaning">Cleaning</option>
+      </select>
+
+      <textarea [(ngModel)]="formData.volunteerNote" rows="2" placeholder="Other volunteer details (optional)"
+        class="w-full p-3 border border-gray-300 rounded mb-3"></textarea>
+
+      <div class="flex justify-between mt-6">
+        <button (click)="prevStep()" class="bg-gray-300 text-gray-800 py-2 px-6 rounded-md hover:bg-gray-400 transition">
+          Back
+        </button>
+        <button (click)="submitForm()" class="bg-green-600 text-white py-2 px-6 rounded-md hover:bg-green-700 transition">
+          Submit
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 4 (SUMMARY) -->
+    <div *ngIf="activeStep === 4" class="animate-fade-in text-left">
+      <h2 class="text-lg font-semibold mb-4 text-blue-700">Summary</h2>
+
+      <div class="space-y-2">
+        <p><strong>Name:</strong> {{ formData.firstName }} {{ formData.lastName }}</p>
+        <p><strong>Phone:</strong> {{ formData.phone }}</p>
+        <p><strong>Category:</strong> {{ formData.category }}</p>
+        <p *ngIf="formData.spouse.firstName"><strong>Spouse:</strong> {{ formData.spouse.firstName }} {{ formData.spouse.lastName }}</p>
+
+        <div *ngIf="formData.dependents.length > 0">
+          <strong>Dependents:</strong>
+          <ul class="list-disc list-inside">
+            <li *ngFor="let d of formData.dependents">{{ d.name }} ({{ d.ageGroup }})</li>
+          </ul>
+        </div>
+
+        <p><strong>Expected Payment Date:</strong> {{ formData.expectedPaymentDate || 'Not specified' }}</p>
+        <p><strong>T-shirt:</strong> {{ formData.wantTshirt ? 'Yes' : 'No' }}</p>
+        <p><strong>Cap:</strong> {{ formData.wantCap ? 'Yes' : 'No' }}</p>
+        <p><strong>Volunteer Area:</strong> {{ formData.volunteerRole || 'None' }}</p>
+
+        <hr class="my-4" />
+        <h3 class="text-blue-700 font-semibold">Total Amount Due:</h3>
+        <p class="text-2xl font-bold text-green-700">{{ totalCost() | currency:'USD' }}</p>
+        <p class="text-gray-600 text-sm">Please ensure payment is made by the selected date above.</p>
+      </div>
+
+      <div class="flex justify-center mt-8 gap-4 print:hidden">
+        <button (click)="printSummary()" class="bg-blue-600 text-white py-2 px-8 rounded-md hover:bg-blue-700 transition">
+          Print Summary
+        </button>
+        <button (click)="restartForm()" class="bg-gray-300 text-gray-800 py-2 px-8 rounded-md hover:bg-gray-400 transition">
+          Finish
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

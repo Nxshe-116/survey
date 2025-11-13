@@ -3,7 +3,6 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GoogleSheetService } from '../google-sheet';
- // adjust path if needed
 
 @Component({
   selector: 'app-camper',
@@ -35,7 +34,7 @@ export class Camper {
   loading = false;
 
   priceMap: Record<string, number> = {
-    couple: 300, // shared for both spouses
+    couple: 300, 
     adult: 230,
     youth: 145,
     teen: 85,
@@ -85,7 +84,7 @@ export class Camper {
     if (this.activeStep > 1) this.activeStep--;
   }
 
-  // ✅ Correct cost logic
+
   totalCost() {
     let total = 0;
 
@@ -113,38 +112,60 @@ export class Camper {
     return total;
   }
 
-  // 🚀 SUBMIT FORM + send to Google Sheet
-  submitForm() {
-    this.loading = true;
 
-    const camperData = {
-      'First Name': this.formData.firstName,
-      'Last Name': this.formData.lastName,
-      'Phone': this.formData.phone,
-      'Category': this.formData.category,
-      'Spouse First Name': this.formData.spouse.firstName,
-      'Spouse Last Name': this.formData.spouse.lastName,
-      'Dependents': this.formData.dependents.map(d => `${d.name} (${d.ageGroup})`).join(', '),
-      'Paid Children': this.formData.paidChildren,
-      'Expected Payment Date': this.formData.expectedPaymentDate,
-      'Want T-Shirt': this.formData.wantTshirt ? 'Yes' : 'No',
-      'Want Cap': this.formData.wantCap ? 'Yes' : 'No',
-      'Volunteer Role': this.formData.volunteerRole,
-      'Volunteer Note': this.formData.volunteerNote,
-    };
+submitForm() {
+  this.loading = true;
 
-    this.googleSheet.sendToSheet('Campers', camperData)
-      .then(() => {
-        console.log('✅ Camper data sent to Google Sheet');
-        this.loading = false;
-        this.nextStep();
-      })
-      .catch((err) => {
-        console.error('❌ Failed to send data', err);
-        this.loading = false;
-        alert('There was an issue saving your registration. Please try again.');
-      });
-  }
+  // --- 🔹 Base pricing rules
+  const baseRatePerChild = 100; // adjust this base value
+  const cutoffDate = new Date('2025-11-30');
+  const paymentDate = new Date(this.formData.expectedPaymentDate);
+
+  // --- 🔹 Price adjustment after cutoff
+  const isIncreased = paymentDate > cutoffDate;
+  const amount =
+    (this.formData.paidChildren * baseRatePerChild) + (isIncreased ? 15 : 0);
+  const note = isIncreased
+    ? 'Includes $15 December increase'
+    : 'Standard camp rate';
+
+  // --- 🔹 Prepare payload
+  const camperData = {
+    'First Name': this.formData.firstName,
+    'Last Name': this.formData.lastName,
+    'Phone': this.formData.phone,
+    'Category': this.formData.category,
+    'Spouse First Name': this.formData.spouse.firstName,
+    'Spouse Last Name': this.formData.spouse.lastName,
+    'Dependents': this.formData.dependents
+      .map((d) => `${d.name} (${d.ageGroup})`)
+      .join(', '),
+    'Paid Children': this.formData.paidChildren,
+    'Expected Payment Date': this.formData.expectedPaymentDate,
+    'Want T-Shirt': this.formData.wantTshirt ? 'Yes' : 'No',
+    'Want Cap': this.formData.wantCap ? 'Yes' : 'No',
+    'Volunteer Role': this.formData.volunteerRole,
+    'Volunteer Note': this.formData.volunteerNote,
+    'Amount': `$${amount}`,
+    'Note': note,
+    'Timestamp': new Date().toLocaleString(),
+  };
+
+
+  this.googleSheet
+    .sendToSheet('Campers', camperData)
+    .then(() => {
+      console.log(' Camper data sent to Google Sheet');
+      this.loading = false;
+      this.nextStep(); 
+    })
+    .catch((err) => {
+      console.error(' Failed to send data', err);
+      this.loading = false;
+      alert('There was an issue saving your registration. Please try again.');
+    });
+}
+
 
   printSummary() {
     window.print();

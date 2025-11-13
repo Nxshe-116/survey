@@ -1,152 +1,171 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { GoogleSheetService } from '../google-sheet';
-
 
 @Component({
   selector: 'app-sponsor',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './sponsor.html',
-  styleUrls: ['./sponsor.scss'],
 })
-export class Sponsor {
+export class Sponsor  {
+  loading = false;
   activeStep = 1;
   showWarnings = false;
-  loading = false;
-  steps = ['Personal Info', 'Payment Timing', 'Sponsorship', 'Summary'];
 
-  formData = {
+  steps = ['Sponsor Info', 'Beneficiary', 'Payment', 'Confirm'];
+  sponsorships: any[] = [];
+
+  formData: any = {
+    anonymous: false,
     firstName: '',
     lastName: '',
     phone: '',
     email: '',
-    intendedPaymentDate: new Date().toISOString().split('T')[0],
-    paymentType: '', // full or deposit
-    depositAmount: 0,
-    sponsorType: '', // full or partial
     beneficiaryName: '',
-    amount: 0,
     note: '',
+    intendedPaymentDate: '',
+    paymentType: '',
+    depositAmount: null,
   };
 
-  constructor(private router: Router, private googleSheet: GoogleSheetService) {}
+  constructor(private googleSheet: GoogleSheetService) {}
 
-  // ✅ VALIDATION HELPERS
-  isValidPhone(phone: string): boolean {
-    const phoneRegex = /^[0-9+\s()-]{8,15}$/;
-    return !!phone && phoneRegex.test(phone);
-  }
-
-  isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return !!email && emailRegex.test(email);
-  }
-
-  // ✅ PRICE LOGIC
-  isPriceIncreased(): boolean {
-    const cutoff = new Date('2025-11-30');
-    const payment = new Date(this.formData.intendedPaymentDate);
-    return payment > cutoff;
-  }
-
-  basePrice(): number {
-    return this.isPriceIncreased() ? 315 : 300;
-  }
-
-  totalAmount(): number {
-    if (this.formData.paymentType === 'deposit')
-      return this.formData.depositAmount || 0;
-    if (this.formData.sponsorType === 'partial')
-      return this.formData.amount || 0;
-    return this.basePrice();
-  }
-
-  // ✅ STEP NAVIGATION
+  // Navigation
   nextStep() {
     this.showWarnings = true;
-    if (this.activeStep === 1 && !this.validateStep1()) return;
-    if (this.activeStep === 2 && !this.validateStep2()) return;
-    if (this.activeStep === 3 && !this.validateStep3()) return;
-    this.activeStep++;
+
+    if (this.activeStep === 1) {
+      if (!this.formData.anonymous) {
+        if (
+          !this.formData.firstName ||
+          !this.formData.lastName ||
+          !this.isValidEmail(this.formData.email) ||
+          !this.isValidPhone(this.formData.phone)
+        ) {
+          alert('Please fill in all sponsor details correctly.');
+          return;
+        }
+      }
+    }
+
+    if (this.activeStep === 2 && !this.formData.beneficiaryName) {
+      alert('Please enter the name of the camper being sponsored.');
+      return;
+    }
+
+    if (this.activeStep === 3) {
+      if (!this.formData.intendedPaymentDate || !this.formData.paymentType) {
+        alert('Please complete payment details.');
+        return;
+      }
+      if (
+        this.formData.paymentType === 'Deposit' &&
+        (!this.formData.depositAmount || this.formData.depositAmount <= 0)
+      ) {
+        alert('Please enter a valid deposit amount.');
+        return;
+      }
+    }
+
     this.showWarnings = false;
+    this.activeStep++;
   }
 
   prevStep() {
     if (this.activeStep > 1) this.activeStep--;
   }
 
-  // ✅ STEP VALIDATIONS
-  validateStep1(): boolean {
-    return (
-      !!this.formData.firstName.trim() &&
-      !!this.formData.lastName.trim() &&
-      this.isValidPhone(this.formData.phone) &&
-      this.isValidEmail(this.formData.email)
-    );
+  resetForm() {
+    this.formData = {
+      anonymous: false,
+      firstName: '',
+      lastName: '',
+      phone: '',
+      email: '',
+      beneficiaryName: '',
+      note: '',
+      intendedPaymentDate: '',
+      paymentType: '',
+      depositAmount: null,
+    };
+    this.activeStep = 1;
   }
 
-  validateStep2(): boolean {
+  // Validation
+  isValidEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  isValidPhone(phone: string): boolean {
+    return /^\d{8,15}$/.test(phone);
+  }
+
+  isPriceIncreased(): boolean {
     if (!this.formData.intendedPaymentDate) return false;
-    if (!this.formData.paymentType) return false;
-    if (
-      this.formData.paymentType === 'deposit' &&
-      (!this.formData.depositAmount || this.formData.depositAmount <= 0)
-    )
-      return false;
-    return true;
+    const paymentDate = new Date(this.formData.intendedPaymentDate);
+    const cutoff = new Date('2025-11-30');
+    return paymentDate > cutoff;
   }
 
-  validateStep3(): boolean {
-    if (!this.formData.sponsorType) return false;
-    if (
-      this.formData.sponsorType === 'partial' &&
-      (!this.formData.amount || this.formData.amount <= 0)
-    )
-      return false;
-    return true;
+  basePrice(): number {
+    return this.isPriceIncreased() ? 115 : 100;
   }
 
-  // ✅ SUBMIT + SEND TO GOOGLE SHEET
+  // Main Submission (same pattern as your Contributions component)
   submitForm() {
+    if (
+      (!this.formData.anonymous && (!this.formData.firstName || !this.formData.phone)) ||
+      !this.formData.beneficiaryName ||
+      !this.formData.intendedPaymentDate ||
+      !this.formData.paymentType
+    ) {
+      alert('⚠️ Please fill in all required fields.');
+      return;
+    }
+
     this.loading = true;
 
-    const sponsorData = {
-      'First Name': this.formData.firstName,
-      'Last Name': this.formData.lastName,
-      'Phone': this.formData.phone,
-      'Email': this.formData.email,
+    const amount =
+      this.formData.paymentType === 'Deposit'
+        ? this.formData.depositAmount
+        : this.basePrice();
+
+    const sponsorshipData = {
+      'First Name': this.formData.firstName || 'Anonymous',
+      'Last Name': this.formData.lastName || '',
+      'Phone': this.formData.phone || '',
+      'Email': this.formData.email || '',
       'Intended Payment Date': this.formData.intendedPaymentDate,
       'Payment Type': this.formData.paymentType,
-      'Deposit Amount': this.formData.depositAmount,
-      'Sponsor Type': this.formData.sponsorType,
+      'Deposit Amount': this.formData.depositAmount || '',
+      'Sponsor Type': this.formData.anonymous ? 'Anonymous' : 'Named',
       'Beneficiary Name': this.formData.beneficiaryName,
-      'Amount': this.formData.amount,
-      'Note': this.formData.note,
+      'Amount': amount,
+      'Note': this.formData.note || '',
+      'Timestamp': new Date().toLocaleString(),
     };
 
-    this.googleSheet.sendToSheet('Sponsors', sponsorData).then(
-      () => {
-        console.log('✅ Sponsor data sent to Google Sheet');
+    this.googleSheet
+      .sendToSheet('Sponsors', sponsorshipData)
+      .then(() => {
+        console.log('✅ Sponsorship logged successfully');
         this.loading = false;
-        this.activeStep++;
-      }
-    ).catch(
-      (err) => {
-        console.error('❌ Failed to send sponsor data', err);
+
+        this.sponsorships.push({
+          ...this.formData,
+          amount,
+          status: 'Pending',
+        });
+
+        this.activeStep = 5;
+        this.resetForm();
+      })
+      .catch((err) => {
+        console.error('❌ Failed to log sponsorship', err);
         this.loading = false;
-        alert('There was an issue saving your sponsorship. Please try again.');
-      }
-    );
-  }
-
-  printSummary() {
-    window.print();
-  }
-
-  restartForm() {
-    this.router.navigate(['/']);
+        alert('Error saving sponsorship. Please try again.');
+      });
   }
 }

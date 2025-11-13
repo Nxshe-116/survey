@@ -1,44 +1,16 @@
-<footer class="bg-white">
-  <div class="mx-auto max-w-7xl px-6 py-12 lg:px-8">
-    <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-      <div>
-        <h3 class="text-sm font-semibold text-gray-900">Quick Links</h3>
-        <ul class="mt-4 space-y-2">
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">Home</a></li>
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">Productions</a></li>
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">About Us</a></li>
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">News</a></li>
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">Contact</a></li>
-        </ul>
-      </div>
-      <div>
-        <h3 class="text-sm font-semibold text-gray-900">Contact Us</h3>
-        <ul class="mt-4 space-y-2">
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">Email:
-              info&#64;entertainmentcompany.com</a></li>
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">Phone: +1 234 567 890</a></li>
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">Address: 123 Hollywood Blvd, Los
-              Angeles, CA</a></li>
-        </ul>
-      </div>
-      <div>
-        <h3 class="text-sm font-semibold text-gray-900">Follow Us</h3>
-        <ul class="mt-4 space-y-2">
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">Twitter</a></li>
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">Instagram</a></li>
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">YouTube</a></li>
-        </ul>
-      </div>
-      <div>
-        <h3 class="text-sm font-semibold text-gray-900">Legal</h3>
-        <ul class="mt-4 space-y-2">
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">Privacy Policy</a></li>
-          <li><a routerLink="#" class="text-sm text-gray-600 hover:text-gray-900">Terms of Service</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="mt-12 border-t border-gray-200 pt-8">
-      <p class="text-xs text-gray-600">&copy; 2023 [Entertainment Company Name]. All rights reserved.</p>
-    </div>
+<footer class="bg-white] border-gray-800 text-gray-400 font-poppins py-4 px-6">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
+ 
+    <span class="text-sm text-center md:text-left">
+      © {{ currentYear }} <span class="text-[#ECA400] font-semibold">Reunion CFN</span>. All Rights Reserved.
+    </span>
+
+ 
+    <ul class="flex flex-wrap justify-center md:justify-end text-sm space-x-4">
+      <li><a routerLink="/about" class="hover:text-[#ECA400] transition-colors">About</a></li>
+      <li><a routerLink="/privacy" class="hover:text-[#ECA400] transition-colors">Privacy</a></li>
+      <li><a routerLink="/sponsors" class="hover:text-[#ECA400] transition-colors">Sponsors</a></li>
+      <li><a routerLink="/contact" class="hover:text-[#ECA400] transition-colors">Contact</a></li>
+    </ul>
   </div>
 </footer>

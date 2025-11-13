@@ -104,4 +104,7 @@ export class Contributions {
       alert('Error saving your contribution. Please try again.');
     });
   }
+
+
+  
 }

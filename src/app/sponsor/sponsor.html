@@ -37,25 +37,35 @@
 
     <!-- STEP 1 -->
     <div *ngIf="activeStep === 1" class="space-y-3">
-      <h2 class="text-lg font-semibold mb-4 text-blue-700">Step 1: Personal Information</h2>
+      <h2 class="text-lg font-semibold mb-4 text-blue-700">Step 1: Sponsor Information</h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-        <input [(ngModel)]="formData.firstName" type="text" placeholder="First Name"
-          [ngClass]="{'border-red-500': showWarnings && !formData.firstName}" class="w-full p-3 border rounded" />
-        <input [(ngModel)]="formData.lastName" type="text" placeholder="Last Name"
-          [ngClass]="{'border-red-500': showWarnings && !formData.lastName}" class="w-full p-3 border rounded" />
+      <label class="flex items-center gap-2 mb-4">
+        <input type="checkbox" [(ngModel)]="formData.anonymous" />
+        <span class="font-medium text-gray-700">I wish to remain anonymous</span>
+      </label>
+
+      <div *ngIf="!formData.anonymous">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          <input [(ngModel)]="formData.firstName" type="text" placeholder="First Name"
+            [ngClass]="{'border-red-500': showWarnings && !formData.firstName}"
+            class="w-full p-3 border rounded" />
+          <input [(ngModel)]="formData.lastName" type="text" placeholder="Last Name"
+            [ngClass]="{'border-red-500': showWarnings && !formData.lastName}"
+            class="w-full p-3 border rounded" />
+        </div>
+
+        <input [(ngModel)]="formData.phone" type="tel" placeholder="Phone Number"
+          [ngClass]="{'border-red-500': showWarnings && !isValidPhone(formData.phone)}"
+          class="w-full p-3 border rounded mb-3" />
+
+        <input [(ngModel)]="formData.email" type="email" placeholder="Email Address"
+          [ngClass]="{'border-red-500': showWarnings && !isValidEmail(formData.email)}"
+          class="w-full p-3 border rounded mb-3" />
       </div>
 
-      <input [(ngModel)]="formData.phone" type="tel" placeholder="Phone Number"
-        [ngClass]="{'border-red-500': showWarnings && !isValidPhone(formData.phone)}"
-        class="w-full p-3 border rounded" />
-
-      <input [(ngModel)]="formData.email" type="email" placeholder="Email Address"
-        [ngClass]="{'border-red-500': showWarnings && !isValidEmail(formData.email)}"
-        class="w-full p-3 border rounded" />
-
       <div class="flex justify-end pt-4">
-        <button (click)="nextStep()" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition">
+        <button (click)="nextStep()"
+          class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition">
           Next
         </button>
       </div>
@@ -63,9 +73,32 @@
 
     <!-- STEP 2 -->
     <div *ngIf="activeStep === 2" class="space-y-3">
-      <h2 class="text-lg font-semibold mb-4 text-blue-700">Step 2: Payment Timing</h2>
+      <h2 class="text-lg font-semibold mb-4 text-blue-700">Step 2: Beneficiary Information</h2>
 
-      <label class="block font-medium text-gray-700 mb-1">When would you like to make your payment?</label>
+      <input [(ngModel)]="formData.beneficiaryName" type="text" placeholder="Full Name of Camper"
+        [ngClass]="{'border-red-500': showWarnings && !formData.beneficiaryName}"
+        class="w-full p-3 border rounded mb-3" />
+
+      <textarea [(ngModel)]="formData.note" rows="3" placeholder="Optional note or message (optional)"
+        class="w-full p-3 border rounded"></textarea>
+
+      <div class="flex justify-between pt-4">
+        <button (click)="prevStep()"
+          class="bg-gray-300 text-gray-800 py-2 px-6 rounded-md hover:bg-gray-400 transition">
+          Back
+        </button>
+        <button (click)="nextStep()"
+          class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition">
+          Next
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div *ngIf="activeStep === 3" class="space-y-3">
+      <h2 class="text-lg font-semibold mb-4 text-blue-700">Step 3: Payment Details</h2>
+
+      <label class="block font-medium text-gray-700 mb-1">Intended Payment Date</label>
       <input [(ngModel)]="formData.intendedPaymentDate" type="date"
         [ngClass]="{'border-red-500': showWarnings && !formData.intendedPaymentDate}"
         class="w-full p-3 border rounded mb-3" />
@@ -74,32 +107,21 @@
         ⚠️ Your payment is after 30 November — new price applies (${{ basePrice() }}).
       </p>
 
-      <label class="block font-medium mb-2">Is this a full payment or a deposit?</label>
+      <label class="block font-medium mb-2">Payment Type</label>
       <div class="flex flex-col sm:flex-row gap-4 mb-4">
         <label class="flex items-center gap-2">
-          <input type="radio" name="paymentType" [(ngModel)]="formData.paymentType" value="full" /> Full Payment
+          <input type="radio" name="paymentType" [(ngModel)]="formData.paymentType" value="Full" /> Full Payment
         </label>
         <label class="flex items-center gap-2">
-          <input type="radio" name="paymentType" [(ngModel)]="formData.paymentType" value="deposit" /> Deposit
+          <input type="radio" name="paymentType" [(ngModel)]="formData.paymentType" value="Deposit" /> Deposit
         </label>
       </div>
 
-      <div *ngIf="formData.paymentType === 'deposit'">
-        <input [(ngModel)]="formData.depositAmount" type="number" placeholder="Enter Deposit Amount ($)"
+      <div *ngIf="formData.paymentType === 'Deposit'">
+        <input [(ngModel)]="formData.depositAmount" type="number" placeholder="Deposit Amount ($)"
           [ngClass]="{'border-red-500': showWarnings && (!formData.depositAmount || formData.depositAmount <= 0)}"
           class="w-full p-3 border rounded mb-3" />
       </div>
-
-      <p *ngIf="showWarnings && !formData.intendedPaymentDate" class="text-red-500 text-sm">
-        Please select a payment date.
-      </p>
-      <p *ngIf="showWarnings && !formData.paymentType" class="text-red-500 text-sm">
-        Please choose whether this is a full payment or a deposit.
-      </p>
-      <p *ngIf="showWarnings && formData.paymentType === 'deposit' && (!formData.depositAmount || formData.depositAmount <= 0)"
-        class="text-red-500 text-sm">
-        Please enter a valid deposit amount.
-      </p>
 
       <div class="flex justify-between pt-4">
         <button (click)="prevStep()" class="bg-gray-300 text-gray-800 py-2 px-6 rounded-md hover:bg-gray-400 transition">
@@ -109,6 +131,41 @@
           Next
         </button>
       </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div *ngIf="activeStep === 4" class="space-y-3">
+      <h2 class="text-lg font-semibold mb-4 text-blue-700">Step 4: Confirm & Submit</h2>
+
+      <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-2">
+        <p><strong>Sponsor Type:</strong> {{ formData.anonymous ? 'Anonymous' : 'Named' }}</p>
+        <p *ngIf="!formData.anonymous"><strong>Name:</strong> {{ formData.firstName }} {{ formData.lastName }}</p>
+        <p *ngIf="!formData.anonymous"><strong>Email:</strong> {{ formData.email }}</p>
+        <p *ngIf="!formData.anonymous"><strong>Phone:</strong> {{ formData.phone }}</p>
+
+        <p><strong>Beneficiary:</strong> {{ formData.beneficiaryName }}</p>
+        <p><strong>Payment Type:</strong> {{ formData.paymentType }}</p>
+        <p><strong>Date:</strong> {{ formData.intendedPaymentDate | date }}</p>
+        <p><strong>Amount:</strong> ${{ formData.paymentType === 'Deposit' ? formData.depositAmount : basePrice() }}</p>
+      </div>
+
+      <div class="flex justify-between pt-4">
+        <button (click)="prevStep()" class="bg-gray-300 text-gray-800 py-2 px-6 rounded-md hover:bg-gray-400 transition">
+          Back
+        </button>
+        <button (click)="submitForm()" class="bg-green-600 text-white py-2 px-6 rounded-md hover:bg-green-700 transition">
+          Submit
+        </button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div *ngIf="activeStep === 5" class="text-center space-y-4 py-10">
+      <h2 class="text-2xl font-bold text-green-600">🎉 Sponsorship Submitted Successfully!</h2>
+      <p class="text-gray-700">Thank you for your generosity.</p>
+      <button (click)="resetForm()" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition">
+        Sponsor Another Camper
+      </button>
     </div>
   </div>
 </div>

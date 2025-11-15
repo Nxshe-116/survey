@@ -1,5 +1,14 @@
 {
   "plugins": {
     "@tailwindcss/postcss": {}
-  }
+  },
+
+  
+      "colors": {
+        "red": "#FF4C4C "      
+       
+      }
+ 
+  
 }
+

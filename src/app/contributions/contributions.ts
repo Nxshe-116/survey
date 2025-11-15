@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GoogleSheetService } from '../google-sheet';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -51,19 +52,22 @@ export class Contributions {
 
   contributions: any[] = [];
 
-  constructor(private googleSheet: GoogleSheetService) {}
+  constructor(private googleSheet: GoogleSheetService,private router:Router) {}
 
   getStatus(item: any): string {
-    if (item.pledged >= item.needed) return '✅ Completed';
-    if (item.pledged > 0) return '🟡 Partially Contributed';
-    return '⚪ Available';
+    if (item.pledged >= item.needed) return 'Completed';
+    if (item.pledged > 0) return 'Partially Contributed';
+    return 'Available';
   }
 
   openForm(item: any) {
     this.selectedItem = item;
     this.showForm = true;
   }
-
+goHome() {
+  this.router.navigate(['/']); // navigates to your main landing page
+}
+ 
   submitForm() {
     if (!this.form.name || !this.form.phone || this.form.quantity <= 0) {
       alert('Please fill in all fields correctly.');

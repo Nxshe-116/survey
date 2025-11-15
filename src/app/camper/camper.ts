@@ -33,16 +33,19 @@ export class Camper {
   participants: any[] = [];
   loading = false;
 
+  /** Base price map */
   priceMap: Record<string, number> = {
-    couple: 300, 
-    adult: 230,
-    youth: 145,
-    teen: 85,
-    day: 15,
+    Couple: 300,
+    Adult: 230,
+    Youth: 145,
+    Teen: 85,
+    Child: 0, // under 12 = free
+    Day: 15,
   };
+costBreakdown: number[] = [];
+  constructor(private router: Router, private googleSheet: GoogleSheetService,) {}
 
-  constructor(private router: Router, private googleSheet: GoogleSheetService) {}
-
+  /** Update dynamic list of participants based on category */
   updateParticipants() {
     this.participants = [];
 
@@ -51,32 +54,40 @@ export class Camper {
     this.participants.push({ name: primaryName, accommodation: '' });
 
     if (
-      this.formData.category === 'couple' ||
-      this.formData.category === 'coupleWithChildren'
+      this.formData.category === 'Couple' ||
+      this.formData.category === 'CoupleWithChildren'
     ) {
       const spouseName =
         `${this.formData.spouse.firstName} ${this.formData.spouse.lastName}`.trim() ||
         'Spouse';
-      this.participants.push({ name: spouseName, accommodation: 'couple' });
+      this.participants.push({ name: spouseName, accommodation: 'Couple' });
     }
 
     this.participants.push(...this.formData.dependents);
   }
 
+  /** Add dependent */
   addDependent() {
-    this.formData.dependents.push({ name: '', ageGroup: '', accommodation: '' });
+    this.formData.dependents.push({
+      name: '',
+      ageGroup: '',
+      accommodation: '',
+    });
     this.updateParticipants();
+    console.log('Cost breakdown:', this.costBreakdown);
   }
 
+  /** Remove dependent */
   removeDependent(i: number) {
     this.formData.dependents.splice(i, 1);
     this.updateParticipants();
   }
 
+
   nextStep() {
     if (this.activeStep < 4) {
       this.activeStep++;
-      console.log('➡️ Step advanced at:', new Date().toLocaleString());
+      console.log('➡️ Step advanced to', this.activeStep);
     }
   }
 
@@ -84,52 +95,83 @@ export class Camper {
     if (this.activeStep > 1) this.activeStep--;
   }
 
+isPriceIncreased(): boolean {
+  if (!this.formData.expectedPaymentDate) return false;
+  const paymentDate = new Date(this.formData.expectedPaymentDate);
+  const cutoff = new Date('2025-11-30');
+  return paymentDate > cutoff;
+}
 
-  totalCost() {
-    let total = 0;
+basePrice(): number {
 
-    if (
-      this.formData.category === 'couple' ||
-      this.formData.category === 'coupleWithChildren'
-    ) {
-      total += this.priceMap['couple'];
+  return  5;
+}
+ 
+totalCost() {
+  const breakdown: number[] = [];
+  const category = this.formData.category?.toLowerCase() || '';
+
+  // 🧾 Base category
+  if (category === 'couple') {
+    breakdown.push(this.priceMap['Couple']);
+  } 
+  else if (category === 'couplewithchildren') {
+    breakdown.push(this.priceMap['Couple']);
+    for (const dep of this.formData.dependents) {
+      const type = dep.ageGroup?.toLowerCase();
+      if (type === 'teen') breakdown.push(this.priceMap['Teen']);
+      if (type === 'youth') breakdown.push(this.priceMap['Youth']);
+      if (type === 'child') breakdown.push(this.priceMap['Child']);
     }
-
-    for (const d of this.formData.dependents) {
-      total += this.priceMap[d.ageGroup] || 0;
+  } 
+  else if (category === 'adultwithdependents') {
+    breakdown.push(this.priceMap['Adult']);
+    for (const dep of this.formData.dependents) {
+      const type = dep.ageGroup?.toLowerCase();
+      if (type === 'teen') breakdown.push(this.priceMap['Teen']);
+      if (type === 'youth') breakdown.push(this.priceMap['Youth']);
+      if (type === 'child') breakdown.push(this.priceMap['Child']);
     }
-
-    if (
-      this.formData.category === 'adult' ||
-      this.formData.category === 'youth'
-    ) {
-      total += this.priceMap[this.formData.category];
-    }
-
-    if (this.formData.wantTshirt) total += 20;
-    if (this.formData.wantCap) total += 10;
-
-    return total;
+  } 
+  else {
+    const singleType = category.charAt(0).toUpperCase() + category.slice(1);
+    breakdown.push(this.priceMap[singleType] || 0);
   }
+
+  // 🧢 Extras
+  if (this.formData.wantTshirt) breakdown.push(10);
+  if (this.formData.wantCap) breakdown.push(5);
+
+  // 📅 Late payment increase
+  if (this.isPriceIncreased()) {
+    if (category === 'couple' || category === 'couplewithchildren') {
+      breakdown.push(5); // flat per couple
+    } else {
+      const personCount = 1 + (this.formData.dependents?.length || 0);
+      for (let i = 0; i < personCount; i++) breakdown.push(5);
+    }
+  }
+
+  // 🔢 Final total
+  const total = breakdown.reduce((sum, val) => sum + val, 0);
+
+  this.costBreakdown = breakdown;
+  console.log('💰 Breakdown:', breakdown, 'Total:', total);
+  return total;
+}
+
+
+
 
 
 submitForm() {
   this.loading = true;
 
-  // --- 🔹 Base pricing rules
-  const baseRatePerChild = 100; // adjust this base value
-  const cutoffDate = new Date('2025-11-30');
-  const paymentDate = new Date(this.formData.expectedPaymentDate);
-
-  // --- 🔹 Price adjustment after cutoff
-  const isIncreased = paymentDate > cutoffDate;
-  const amount =
-    (this.formData.paidChildren * baseRatePerChild) + (isIncreased ? 15 : 0);
-  const note = isIncreased
-    ? 'Includes $15 December increase'
+  const total = this.totalCost();
+  const note = this.isPriceIncreased()
+    ? 'Includes $5 December increase'
     : 'Standard camp rate';
 
-  // --- 🔹 Prepare payload
   const camperData = {
     'First Name': this.formData.firstName,
     'Last Name': this.formData.lastName,
@@ -138,33 +180,31 @@ submitForm() {
     'Spouse First Name': this.formData.spouse.firstName,
     'Spouse Last Name': this.formData.spouse.lastName,
     'Dependents': this.formData.dependents
-      .map((d) => `${d.name} (${d.ageGroup})`)
+      .map(d => `${d.name} (${d.ageGroup || 'N/A'})`)
       .join(', '),
-    'Paid Children': this.formData.paidChildren,
-    'Expected Payment Date': this.formData.expectedPaymentDate,
+    'Expected Payment Date': this.formData.expectedPaymentDate || 'Not provided',
     'Want T-Shirt': this.formData.wantTshirt ? 'Yes' : 'No',
     'Want Cap': this.formData.wantCap ? 'Yes' : 'No',
-    'Volunteer Role': this.formData.volunteerRole,
-    'Volunteer Note': this.formData.volunteerNote,
-    'Amount': `$${amount}`,
+    'Volunteer Role': this.formData.volunteerRole || 'None',
+    'Volunteer Note': this.formData.volunteerNote || '',
+    'Amount': `$${total}`,
     'Note': note,
     'Timestamp': new Date().toLocaleString(),
   };
 
-
   this.googleSheet
     .sendToSheet('Campers', camperData)
     .then(() => {
-      console.log(' Camper data sent to Google Sheet');
       this.loading = false;
-      this.nextStep(); 
+      this.nextStep();
     })
-    .catch((err) => {
-      console.error(' Failed to send data', err);
+    .catch(err => {
+      console.error('Failed to send data', err);
       this.loading = false;
       alert('There was an issue saving your registration. Please try again.');
     });
 }
+
 
 
   printSummary() {
@@ -172,7 +212,15 @@ submitForm() {
   }
 
   restartForm() {
-    console.log('form details', this.formData);
+    console.log('🧾 Form details', this.formData);
     this.router.navigate(['/']);
   }
+
+  goHome() {
+  this.router.navigate(['/']); // navigates to your main landing page
+}
+
+
+
+
 }

@@ -10,7 +10,7 @@
 
     <p class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 mb-6 rounded">
       ⚠️ Current prices are valid until <strong>30 November 2025</strong>. From
-      <strong>1 December</strong>, the fee will increase by <strong>$5</strong>.
+      <strong>1 December</strong>, the fee will increase by <strong>$5</strong> per person.
     </p>
 
     <ol class="flex justify-center items-center w-full max-w-xl mx-auto mb-8">
@@ -126,12 +126,12 @@
         <label class="block font-medium mb-1">{{ person.name }}</label>
         <select [(ngModel)]="person.accommodation" class="w-full p-3 border border-gray-300 rounded">
           <option value="">Select accommodation</option>
-          <option value="couple">Couple — $300 (shared)</option>
-          <option value="adult">Adult (individual) — $230</option>
-          <option value="youth">Youth — $145</option>
-          <option value="teen">Teen — $85</option>
-          <option value="child">Sharing with Parents — FREE</option>
-          <option value="day">Day Camper — $15</option>
+          <option value="couple">Couple ($300)</option>
+          <option value="adult">Adult ($230) </option>
+          <option value="youth">Youth ($145)</option>
+          <option value="teen">Teen ($85)</option>
+          <option value="child">Sharing with Parents</option>
+          <option value="day">Day Camper ($15)</option>
         </select>
       </div>
 
@@ -159,7 +159,7 @@
              class="w-full p-3 border border-gray-300 rounded mb-4" />
 
          <p *ngIf="isPriceIncreased()" class="text-red-600 font-medium text-sm mb-2">
-        ⚠️ Your payment is after 30 November — new price applies (${{ basePrice() }}).
+        ⚠️ Your payment is after 30 November — new price applies ( +${{ basePrice() }}/person).
       </p>
        
 
